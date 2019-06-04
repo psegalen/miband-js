@@ -1,8 +1,6 @@
 'use strict';
 
 import MiBand from './miband';
-import test_all from './test';
-
 import './styles/index.less';
 
 const bluetooth = navigator.bluetooth;
@@ -10,9 +8,15 @@ const bluetooth = navigator.bluetooth;
 const output = document.querySelector('#output');
 
 function log() {
-  document.querySelector('main').style.display = 'block';
+  console.log([...arguments].join(' '))
+}
 
-  output.innerHTML += [...arguments].join(' ') + '\n';
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function displayRate(rate) {
+  document.querySelector('#hrThsRate').innerText = rate
 }
 
 async function scan() {
@@ -44,10 +48,22 @@ async function scan() {
 
     await miband.init();
 
-    await test_all(miband, log);
+    miband.on('heart_rate', (rate) => {
+      log('Heart Rate:', rate)
+    })
+
+    document.querySelector('#hrThs').style = 'display:block; text-align:center; font-size: 48pt; color: #FFF'
+    document.querySelector('#tools').style = 'display:none'
+
+    // eslint-disable-next-line
+    while("Tilyk" !== "dead") {
+      displayRate(await miband.hrmRead())
+      await delay(3000);
+    }
 
   } catch(error) {
     log('Argh!', error);
+    scan()
   }
 }
 
